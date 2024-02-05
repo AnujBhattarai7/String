@@ -26,6 +26,7 @@ public:
 
     inline void Clear() { _Del(); }
 
+    // Range based loops
     inline Iterator begin()
     {
         if (_Size > 60)
@@ -40,6 +41,7 @@ public:
         return (_SmallString.begin() + _Size);
     }
 
+    // Pushes a single char to end of string
     inline void Push_Back(const char _C)
     {
         if (_Size < 60)
@@ -49,8 +51,23 @@ public:
         _Size++;
     }
 
+    // Returns the pos of given _C from _Pos if found else -1
+    int Find(char _C, int _IPos = 0) { return Find(_C, _IPos, _Size); }
+    // Returns the pos of given _C from _IPos to _FPos if found else -1
+    int Find(char _C, int _IPos, int _FPos);
+    // returns the pos of _C first occurence
+    int Find_First_Of(char _C, int _Pos = 0) { return Find(_C, _Pos); }
+    // returns the pos of _C Second occurence
+    int Find_Not_First_Of(char _C, int _Pos = 0) { return Find(_C, Find(_C, _Pos) + 1); }
+    // returns the pos of _C last occurence
+    int Find_Last_Of(char _C, int _Pos = 0) { return _Find_Last(_C, _Size - 1, _Pos); }
+    // returns the pos of _C Second last occurence
+    int Find_Not_Last_Of(char _C, int _Pos = 0) { return _Find_Last(_C, Find_Last_Of(_C, _Pos) - 1, 0); }
+
+    // Appends the _Str to _String
     void Append(const char *_C);
 
+    // Returns a string which has char from _ipos to _fpos
     String SubStr(int _ipos, int _fpos);
 
     // Operators
@@ -94,6 +111,9 @@ private:
 
     // Allows getting the Len of given char
     int _String_Len(const char *_Str);
+
+    // Returns the pos of _C from last
+    int _Find_Last(char _C, int _Ipos, int _FPos);
 };
 
 inline const char *String::C_Str() const
@@ -154,6 +174,27 @@ inline String &String::operator=(const char *_C)
     return *this;
 }
 
+inline int String::Find(char _C, int _IPos, int _FPos)
+{
+    if (_IPos > _Size || _FPos > _Size)
+    {
+        _PRINT_("[STRING]: _Pos: " << _IPos << " to " << _FPos << " is grater than size!!")
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = _IPos; i < _FPos; i++)
+    {
+        if (i < 59)
+            if (_SmallString[i] == _C)
+                return i;
+        if (i > 59)
+            if (_String[i] == _C)
+                return i;
+    }
+
+    return -1;
+}
+
 inline void String::_Del()
 {
     if (_Size > 60)
@@ -169,4 +210,25 @@ inline int String::_String_Len(const char *_Str)
     while (_Str[Size] != '\0')
         Size++;
     return Size;
+}
+
+int String::_Find_Last(char _C, int _Ipos, int _FPos)
+{
+    if (_Ipos > _Size || _FPos > _Size)
+    {
+        _PRINT_("[STRING]: _Pos: " << _Ipos << " to " << _FPos << " is grater than size!!")
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = _Ipos; i > _FPos; i--)
+    {
+        if (i < 59)
+            if (_SmallString[i] == _C)
+                return i;
+        if (i > 59)
+            if (_String[i] == _C)
+                return i;
+    }
+
+    return -1;
 }
