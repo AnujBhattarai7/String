@@ -20,7 +20,7 @@ public:
 
     // Getters
     // Const
-    inline const char *C_Str() const { return _String.Data(); }
+    inline const char *C_Str() const;
     inline const int Size() const { return _Size; }
     inline const int Capacity() const { return (_String.Capacity() + _STRING_OPTIMIZATION_SIZE_); }
 
@@ -44,16 +44,31 @@ public:
     {
         if (_Size < 60)
             _SmallString.Push_Back(_C);
-        _String.Push_Back(_C);
+        else
+            _String.Push_Back(_C);
+        _Size++;
     }
 
     void Append(const char *_C);
 
+    String SubStr(int _ipos, int _fpos);
+
     // Operators
     String &operator=(const char *_C);
 
-    inline const char operator[](int i) const { return _String[i]; }
-    inline char operator[](int i) { return _String[i]; }
+    inline const char operator[](int i) const
+    {
+        if (_Size < 60)
+            return _SmallString[i];
+        return _String[i];
+    }
+
+    inline char operator[](int i)
+    {
+        if (_Size < 60)
+            return _SmallString[i];
+        return _String[i];
+    }
 
     // For Printing
     friend std::ostream &operator<<(std::ostream &os, String &_String)
@@ -81,6 +96,13 @@ private:
     int _String_Len(const char *_Str);
 };
 
+inline const char *String::C_Str() const
+{
+    if (_Size < 60)
+        return _SmallString.Data();
+    return _String.Data();
+}
+
 inline void String::Append(const char *_C)
 {
     // Checks if size is enough
@@ -96,6 +118,16 @@ inline void String::Append(const char *_C)
 
     for (int i = 0; i < _String_Len(_C); i++)
         _SmallString.Push_Back(_C[i]);
+}
+
+inline String String::SubStr(int _ipos, int _fpos)
+{
+    String _RString;
+
+    for (int i = _ipos; i < _fpos; i++)
+        _RString.Push_Back(this->operator[](i));
+
+    return _RString;
 }
 
 inline String &String::operator=(const char *_C)
@@ -126,6 +158,9 @@ inline void String::_Del()
 {
     if (_Size > 60)
         _String.Flush();
+    else
+        _SmallString._Flush_();
+    _Size = 0;
 }
 
 inline int String::_String_Len(const char *_Str)
