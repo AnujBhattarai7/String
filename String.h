@@ -15,7 +15,7 @@ public:
 
 public:
     String() {}
-    String(const char *_Str) { Append(_Str); }
+    String(const char *_Str) { this->operator=(_Str); }
     ~String() {}
 
     // Getters
@@ -44,12 +44,19 @@ public:
     // Pushes a single char to end of string
     inline void Push_Back(const char _C)
     {
+        // Limit of _SmallString reached so append to _String
+        if (_Size == 60)
+            _Copy_Dynamic_String_(true);
+
         if (_Size < 60)
             _SmallString.Push_Back(_C);
         else
             _String.Push_Back(_C);
+
         _Size++;
     }
+
+    // Find Funcs
 
     // Returns the pos of given _C from _Pos if found else -1
     int Find(char _C, int _IPos = 0) { return Find(_C, _IPos, _Size); }
@@ -73,6 +80,7 @@ public:
     // Operators
     String &operator=(const char *_C);
 
+    // Index operators
     inline const char operator[](int i) const
     {
         if (_Size < 60)
@@ -89,6 +97,14 @@ public:
 
     // For Printing
     friend std::ostream &operator<<(std::ostream &os, String &_String)
+    {
+        for (char &i : _String)
+            os << i;
+
+        return os;
+    }
+    // For Printing
+    friend std::ostream &operator<<(std::ostream &os, String _String)
     {
         for (char &i : _String)
             os << i;
@@ -114,30 +130,43 @@ private:
 
     // Returns the pos of _C from last
     int _Find_Last(char _C, int _Ipos, int _FPos);
+
+    // If _Cond == true then will copy the contents os _SmallString to the dynamic _String
+    void _Copy_Dynamic_String_(bool _Cond);
 };
 
 inline const char *String::C_Str() const
 {
     if (_Size < 60)
+    {
         return _SmallString.Data();
+    }
     return _String.Data();
 }
 
 inline void String::Append(const char *_C)
 {
     // Checks if size is enough
-    _Size = _String_Len(_C) + _Size;
+    int _O_Size = _Size;
+    _Size = _String_Len(_C) + _O_Size;
 
-    if (_Size > 60)
+    if (_Size < 60)
     {
-        _String.Reserve(_Size);
-        // Adds the characters
         for (int i = 0; i < _String_Len(_C); i++)
-            _String.Push_Back(_C[i]);
+            _SmallString.Push_Back(_C[i]);
+        return;
     }
 
-    for (int i = 0; i < _String_Len(_C); i++)
-        _SmallString.Push_Back(_C[i]);
+    _String.Reserve(_Size);
+
+    if (_STRING_OPTIMIZATION_SIZE_ > _O_Size)
+    {
+        for (int i = 0; i < _STRING_OPTIMIZATION_SIZE_; i++)
+            _String.Push_Back(_SmallString[i]);
+    }
+
+    for (int i = _O_Size; i < _Size; i++)
+        _String.Push_Back(_SmallString[i]);
 }
 
 inline String String::SubStr(int _ipos, int _fpos)
@@ -152,24 +181,8 @@ inline String String::SubStr(int _ipos, int _fpos)
 
 inline String &String::operator=(const char *_C)
 {
-    _Size = _String_Len(_C);
-
-    if (_Size > 60)
-    {
-        _String.Reserve(_Size);
-
-        for (int i = 0; i < _Size; i++)
-        {
-            _String.Emplace_Back(_C[i]);
-        }
-
-        return *this;
-    }
-
-    for (int i = 0; i < _Size; i++)
-    {
-        _SmallString[i] = _C[i];
-    }
+    Clear();
+    Append(_C);
 
     return *this;
 }
@@ -184,10 +197,10 @@ inline int String::Find(char _C, int _IPos, int _FPos)
 
     for (int i = _IPos; i < _FPos; i++)
     {
-        if (i < 59)
+        if (i < _STRING_OPTIMIZATION_SIZE_ - 1)
             if (_SmallString[i] == _C)
                 return i;
-        if (i > 59)
+        if (i > _STRING_OPTIMIZATION_SIZE_ - 1)
             if (_String[i] == _C)
                 return i;
     }
@@ -222,13 +235,26 @@ int String::_Find_Last(char _C, int _Ipos, int _FPos)
 
     for (int i = _Ipos; i > _FPos; i--)
     {
-        if (i < 59)
+        if (i < _STRING_OPTIMIZATION_SIZE_ - 1)
             if (_SmallString[i] == _C)
                 return i;
-        if (i > 59)
+        if (i > _STRING_OPTIMIZATION_SIZE_ - 1)
             if (_String[i] == _C)
                 return i;
     }
 
     return -1;
+}
+
+inline void String::_Copy_Dynamic_String_(bool _Cond)
+{
+    if (_Cond)
+    {
+        _String.Reserve(_Size);
+
+        for (int i = 0; i < _Size; i++)
+            _String.Push_Back(_SmallString[i]);
+
+        _SmallString._Flush_();
+    }
 }

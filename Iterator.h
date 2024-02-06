@@ -18,8 +18,8 @@ public:
         return *this;
     }
 
-    _Iterator_Base &operator+(int _Add)
-    {
+    _Iterator_Base &operator+(const int _Add)
+    { 
         for (int i = 0; i < _Add; i++)
             _P++;
         return *this;

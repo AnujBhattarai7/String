@@ -41,11 +41,9 @@ int main(int argc, char const *argv[])
 {
     {
         String _S = "Hello";
-        _S.Append(" asdasd");
-        
-        _PRINT_(_S.Find('a', 7, 10));
-        _PRINT_(_S[6]);
-        _PRINT_((_S.SubStr(2, 5)).C_Str())
+        _S.Append(" as");
+                
+        _PRINT_(_S.Find('a'));
     }
 
     std::cin.get();
